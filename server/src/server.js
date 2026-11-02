@@ -76,3 +76,14 @@ app.get('/test', (req, res) => {
     status: 'success'
   });
 });
+
+console.log('Registered routes:');
+
+app._router.stack.forEach((middleware) => {
+  if (middleware.route) {
+    console.log(
+      middleware.route.path,
+      Object.keys(middleware.route.methods)
+    );
+  }
+});
