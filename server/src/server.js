@@ -1,3 +1,4 @@
+
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -11,10 +12,10 @@ dotenv.config();
 
 const app = express();
 
-// ===============================
-// CORS CONFIGURATION
-// ===============================
+// PORT
+const PORT = process.env.PORT || 5000;
 
+// CORS CONFIGURATION
 const allowedOrigins = [
   'http://localhost:5173',
   'http://192.168.29.199:5173',
@@ -23,41 +24,38 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 app.use(cors({
-  origin: function (origin, callback) {
+  origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
+      callback(null, true);
+    } else {
+      console.log('Blocked CORS Origin:', origin);
+      callback(new Error('Not allowed by CORS'));
     }
-
-    console.log('CORS BLOCKED:', origin);
-    return callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 204
 }));
 
-// ===============================
-// MIDDLEWARE
-// ===============================
-
+// JSON MIDDLEWARE
 app.use(express.json());
 
+// REQUEST LOGGER
 app.use((req, res, next) => {
   console.log(
     'INCOMING REQUEST:',
     req.method,
-    req.originalUrl,
-    'HOST:',
-    req.headers.host
+    req.originalUrl
   );
-
   next();
 });
 
-// ===============================
-// HEALTH CHECK
-// ===============================
+// ROOT ROUTE
+app.get('/', (req, res) => {
+  res.status(200).send('TimeFlow Backend is Working!');
+});
 
+// HEALTH CHECK ROUTE
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
@@ -66,37 +64,20 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ===============================
-// ROOT ROUTE
-// ===============================
-
-app.get('/', (req, res) => {
-  res.status(200).send('TimeFlow Backend is Working!');
-});
-
-// ===============================
 // TEST ROUTE
-// ===============================
-
 app.get('/test', (req, res) => {
   res.status(200).json({
-    message: 'Test route working',
-    status: 'success'
+    status: 'success',
+    message: 'Test route working'
   });
 });
 
-// ===============================
 // API ROUTES
-// ===============================
-
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/time', timeRoutes);
 
-// ===============================
 // 404 HANDLER
-// ===============================
-
 app.use((req, res) => {
   console.log('404 ROUTE:', req.method, req.originalUrl);
 
@@ -107,10 +88,7 @@ app.use((req, res) => {
   });
 });
 
-// ===============================
 // ERROR HANDLER
-// ===============================
-
 app.use((err, req, res, next) => {
   console.error('SERVER ERROR:', err.message);
 
@@ -127,26 +105,25 @@ app.use((err, req, res, next) => {
   });
 });
 
-// ===============================
-// SERVER START
-// ===============================
+// START SERVER
+const startServer = async () => {
+  try {
+    await connectDB();
 
-const PORT = process.env.PORT || 5000;
-
-connectDB()
-  .then(() => {
     app.listen(PORT, '0.0.0.0', () => {
-      console.log('=================================');
-      console.log('TimeFlow API STARTED');
+      console.log('================================');
+      console.log('TIMEFLOW API STARTED');
       console.log('PORT:', PORT);
-      console.log('REGISTERED HEALTH ROUTE: /api/health');
-      console.log('REGISTERED ROOT ROUTE: /');
-      console.log('REGISTERED TEST ROUTE: /test');
-      console.log('=================================');
+      console.log('ROOT ROUTE: /');
+      console.log('HEALTH ROUTE: /api/health');
+      console.log('TEST ROUTE: /test');
+      console.log('================================');
     });
-  })
-  .catch((error) => {
-    console.error('Database connection failed:', error);
+  } catch (error) {
+    console.error('SERVER START ERROR:', error);
     process.exit(1);
-  });
+  }
+};
+
+startServer();
 ```
