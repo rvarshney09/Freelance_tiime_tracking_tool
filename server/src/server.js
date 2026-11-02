@@ -65,3 +65,14 @@ connectDB()
     console.error('Database connection failed:', error);
     process.exit(1);
   });
+
+app.get('/', (req, res) => {
+  res.send('TimeFlow Backend is Working!');
+});
+
+app.get('/test', (req, res) => {
+  res.json({
+    message: 'Test route working',
+    status: 'success'
+  });
+});
