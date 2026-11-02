@@ -15,8 +15,9 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
   'http://192.168.29.199:5173',
-  'https://freelance-time-tracking-tool.vercel.app'
-];
+  'https://freelance-time-tracking-tool.vercel.app',
+  process.env.CLIENT_URL
+].filter(Boolean);
 
 app.use(cors({
   origin: function (origin, callback) {
